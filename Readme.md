@@ -1,2 +1,1 @@
-A clone of "Game of Life" made with C++ and raylib
-
+A clone of "Game of life" made with C++ and Raylib
