@@ -1,6 +1,8 @@
 #include <raylib.h>
 #include <iostream>
 
+using namespace std;
+
 
 const int screenWidth = 800;
 const int screenHeight = 800;
@@ -10,6 +12,10 @@ const int Cols = 20;
 
 const int cellWidth = screenWidth/Cols;
 const int cellHeight = screenHeight/Rows;
+
+const string title = "Mamta Madarchod";
+
+bool start = false;
 
 typedef struct Cell{
 
@@ -21,7 +27,7 @@ typedef struct Cell{
 
 } Cell;
 
-Cell grid[Cols][Rows];
+Cell grid[Cols][Rows], newGrid[Cols][Rows];
 
 void DrawCell(Cell);
 bool ValidIndex(int,int);
@@ -30,28 +36,30 @@ void SetCellDead(Cell*);
 
 void CheckForAliveCells();
 
+void Intialize();
+
+void switchCell();
+int CountNeighbour(Cell *);
+void CopyGrid();
+
 
 int main()
 {
 
-    for (int i = 0; i < Cols; i++)
-        {
-            for (int j = 0; j < Rows; j++)
-            {
-                // Draw Rectangles
-                grid[i][j] =  Cell{i,j,false};
-            }
-            
-        }
-   
-
-    InitWindow(screenWidth, screenHeight, "Drawing a grid!");
-    SetTargetFPS(60);
+    Intialize();
 
     while (!WindowShouldClose())
     {
 
         CheckForAliveCells();
+
+
+        if(start){
+        // Switch  grid status according to the rules;
+            switchCell();
+
+        }
+
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
@@ -72,6 +80,24 @@ int main()
     CloseWindow();
     return 0;
 }
+
+void Intialize(){
+    for (int i = 0; i < Cols; i++)
+        {
+            for (int j = 0; j < Rows; j++)
+            {
+                // Initialize grids
+                grid[i][j]      =  Cell{i,j,false};
+                newGrid[i][j]   =  Cell{i,j,false};
+            }
+            
+        }
+   
+
+    InitWindow(screenWidth, screenHeight, title.c_str());
+    SetTargetFPS(60);
+}
+
 
 void DrawCell(Cell cell){
     
@@ -140,5 +166,70 @@ void CheckForAliveCells(){
     }
 
     }
+
+    if(IsKeyPressed(KEY_SPACE)){
+
+        // Start Automata
+
+        start = true;
+
+    }
+
+}
+
+void switchCell(){
+
+     for (int i = 0; i < Cols; i++)
+        {
+            for (int j = 0; j < Rows; j++)
+            {
+               switch (CountNeighbour(&grid[i][j]))
+               {
+               case 0:
+               case 1:
+                newGrid[i][j].isAlive = false;
+                break;
+                case 2:
+                newGrid[i][j].isAlive = grid[i][j].isAlive;
+                break;
+                case 3:
+                newGrid[i][j].isAlive = true;
+                break;
+
+                case 4:
+                case 5:
+                case 6:
+                case 7:
+                case 8:
+                newGrid[i][j].isAlive = false;
+                break;
+               }
+            }
+            
+        }
+
+    CopyGrid();
+
+}
+
+void CopyGrid(){
+
+    // Copy newGrid into grid
+
+    for (int i = 0; i < Cols; i++)
+        {
+            for (int j = 0; j < Rows; j++)
+            {
+               grid[i][j] = newGrid[i][j];
+            }
+            
+        }
+
+
+}
+
+int CountNeighbour(Cell * cell){
+
+    // Count neightbour alive
 
 }
