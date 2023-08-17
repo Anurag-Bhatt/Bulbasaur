@@ -1,5 +1,7 @@
 #include <raylib.h>
 #include <iostream>
+#include <fstream>
+
 
 using namespace std;
 
@@ -14,8 +16,12 @@ const int cellWidth = screenWidth/Cols;
 const int cellHeight = screenHeight/Rows;
 
 const string title = "Mamta Madarchod";
+const string debugLogFileName = "debugLog.txt";
 
-bool start = false;
+fstream debugLog;
+
+
+bool startAutomata = false;
 
 typedef struct Cell{
 
@@ -39,12 +45,16 @@ void CheckForAliveCells();
 void Intialize();
 
 void switchCell();
-int CountNeighbour(Cell *);
+int CountNeighbour(int xPos, int yPos);
 void CopyGrid();
+void cellStatus();
 
+bool isAlive(int, int);
 
 int main()
 {
+    
+    debugLog.open(debugLogFileName,ios::out);
 
     Intialize();
 
@@ -53,17 +63,16 @@ int main()
 
         CheckForAliveCells();
 
-
-        if(start){
-        // Switch  grid status according to the rules;
-            switchCell();
-
-        }
-
-
         BeginDrawing();
         ClearBackground(RAYWHITE);
-      
+
+        if(startAutomata){
+        // Switch  grid status according to the rules;
+            switchCell();
+            CopyGrid();
+            startAutomata = false;
+        }
+
         for (int i = 0; i < Cols; i++)
         {
             for (int j = 0; j < Rows; j++)
@@ -116,11 +125,14 @@ bool ValidIndex(int xPos, int yPos){
 void SetCellAlive(Cell *cell){
 
     cell->isAlive = true;
+    // Print grid status
+    // cellStatus();
 }
 
 void SetCellDead(Cell *cell){
 
     cell->isAlive = false;
+    
 }
 
 void CheckForAliveCells(){
@@ -146,7 +158,7 @@ void CheckForAliveCells(){
 
     if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
         
-    std::cout << "X position: " << xIndex << "Y position: " << yIndex << std::endl;
+    debugLog << "X position: " << xIndex << "Y position: " << yIndex << std::endl;
 
      if(ValidIndex(xIndex,yIndex)){
 
@@ -157,7 +169,7 @@ void CheckForAliveCells(){
 
     if(IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)){
   
-    std::cout << "X position: " << xIndex << "Y position: " << yIndex << std::endl;
+    debugLog << "X position: " << xIndex << "Y position: " << yIndex << std::endl;
 
     if(ValidIndex(xIndex,yIndex)){
 
@@ -169,9 +181,9 @@ void CheckForAliveCells(){
 
     if(IsKeyPressed(KEY_SPACE)){
 
-        // Start Automata
+        // start Automata
 
-        start = true;
+        startAutomata = true;
 
     }
 
@@ -179,11 +191,14 @@ void CheckForAliveCells(){
 
 void switchCell(){
 
+    debugLog << "Switching Cell" << std::endl;
+
      for (int i = 0; i < Cols; i++)
         {
             for (int j = 0; j < Rows; j++)
             {
-               switch (CountNeighbour(&grid[i][j]))
+                int neightboursAlive = CountNeighbour(i,j);
+               switch (neightboursAlive)
                {
                case 0:
                case 1:
@@ -195,7 +210,6 @@ void switchCell(){
                 case 3:
                 newGrid[i][j].isAlive = true;
                 break;
-
                 case 4:
                 case 5:
                 case 6:
@@ -203,18 +217,22 @@ void switchCell(){
                 case 8:
                 newGrid[i][j].isAlive = false;
                 break;
+
+                default: 
+                newGrid[i][j].isAlive = grid[i][j].isAlive;
+                break;
                }
             }
             
         }
-
-    CopyGrid();
 
 }
 
 void CopyGrid(){
 
     // Copy newGrid into grid
+
+    debugLog << "Copying new grid into main grid" << std::endl;
 
     for (int i = 0; i < Cols; i++)
         {
@@ -228,8 +246,64 @@ void CopyGrid(){
 
 }
 
-int CountNeighbour(Cell * cell){
+int CountNeighbour(int xPos, int yPos){
 
     // Count neightbour alive
+
+    int NeighboutAlive=0;
+    
+    debugLog <<"Current is alive: " << grid[xPos][yPos].isAlive << std::endl;
+
+    if(ValidIndex(xPos-1,yPos) && isAlive(xPos-1,yPos) ) 
+        NeighboutAlive++;
+
+    if(ValidIndex(xPos+1,yPos) && isAlive(xPos+1,yPos) ) 
+        NeighboutAlive++;
+
+    if(ValidIndex(xPos,yPos+1) && isAlive(xPos,yPos+1) ) 
+        NeighboutAlive++;
+
+    if(ValidIndex(xPos,yPos-1) && isAlive(xPos,yPos-1) ) 
+        NeighboutAlive++;
+
+    if(ValidIndex(xPos-1,yPos-1) && isAlive(xPos-1,yPos-1) ) 
+        NeighboutAlive++;
+
+    if(ValidIndex(xPos-1,yPos+1) && isAlive(xPos-1,yPos+1) ) 
+        NeighboutAlive++;
+
+    if(ValidIndex(xPos+1,yPos-1) && isAlive(xPos+1,yPos-1) ) 
+        NeighboutAlive++;
+
+    if(ValidIndex(xPos+1,yPos+1) && isAlive(xPos+1,yPos+1) ) 
+        NeighboutAlive++;
+
+
+    debugLog << "Current Cell: " << xPos << "  " << yPos << std::endl << 
+                "Number of Neighbour alive: " << NeighboutAlive << std::endl;
+
+    return NeighboutAlive;
+
+    
+}
+
+void cellStatus(){
+
+    for (int row = 0; row < Rows; row++)
+    {
+        
+        for (int col = 0; col < Cols; col++)
+        {
+            debugLog    << "x: "  << grid[row][col].xPos << "y: "  << grid[row][col].yPos 
+                        << "is Alive? " << "x: "  << grid[row][col].isAlive << endl;
+        }
+        
+    }
+    
+}
+
+bool isAlive(int xIndex, int yIndex){
+
+    return grid[xIndex][yIndex].isAlive;
 
 }
